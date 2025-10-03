@@ -64,6 +64,12 @@ export class DatabaseService {
     await this.pool.end();
   }
 
+  async disconnect(): Promise<void> {
+    await this.close();
+    this.isConnected = false;
+    logger.info('Database connection closed');
+  }
+
   private async runMigrations(): Promise<void> {
     if (!this.isConnected) {
       logger.info('Skipping migrations - database not connected');

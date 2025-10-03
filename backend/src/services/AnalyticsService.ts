@@ -1,9 +1,12 @@
+import { Kafka, Producer } from 'kafkajs';
 import { GameEvent } from '../types';
 import { logger } from '../utils/logger';
 
 export class AnalyticsService {
-  private kafka: any; // Will be initialized if Kafka is available
+  private kafka: Kafka | null = null;
+  private producer: Producer | null = null;
   private events: GameEvent[] = []; // In-memory storage for demo
+  private readonly MAX_EVENTS_IN_MEMORY = 5000; // Cap to prevent memory leaks
 
   constructor() {
     this.initializeKafka();
@@ -12,36 +15,36 @@ export class AnalyticsService {
   private async initializeKafka(): Promise<void> {
     try {
       // Only initialize Kafka if environment variable is set and not in development mode
-      if (process.env.KAFKA_BROKERS && process.env.NODE_ENV !== 'development') {
-        const { Kafka } = await import('kafkajs');
-        
+      if (process.env.KAFKA_BROKERS) { // Allow Kafka in dev if brokers are configured
         this.kafka = new Kafka({
           clientId: 'connect-four-game',
           brokers: process.env.KAFKA_BROKERS.split(',')
         });
 
-        const producer = this.kafka.producer();
-        await producer.connect();
+        this.producer = this.kafka.producer();
+        await this.producer.connect();
         
         logger.info('Kafka producer connected successfully');
-      } else {
+      } else if (process.env.NODE_ENV === 'development') { // Only log this warning in development
         logger.info('Kafka disabled for development mode, using in-memory analytics storage');
       }
     } catch (error) {
       logger.warn('Kafka not available, using in-memory analytics storage');
     }
   }
-
+  
   async publishGameEvent(event: GameEvent): Promise<void> {
     try {
       // Store in memory for analytics
       this.events.push(event);
+      // Cap the array size to prevent unbounded memory growth
+      if (this.events.length > this.MAX_EVENTS_IN_MEMORY) {
+        this.events.shift(); // Remove the oldest event
+      }
 
       // Publish to Kafka if available
-      if (this.kafka) {
-        const producer = this.kafka.producer();
-        
-        await producer.send({
+      if (this.producer) {
+        await this.producer.send({
           topic: 'game-events',
           messages: [
             {
@@ -70,12 +73,13 @@ export class AnalyticsService {
 
       // Store in memory
       this.events.push(event as GameEvent);
+      if (this.events.length > this.MAX_EVENTS_IN_MEMORY) {
+        this.events.shift();
+      }
 
       // Publish to Kafka if available
-      if (this.kafka) {
-        const producer = this.kafka.producer();
-        
-        await producer.send({
+      if (this.producer) {
+        await this.producer.send({
           topic: 'player-events',
           messages: [
             {
@@ -93,6 +97,13 @@ export class AnalyticsService {
     }
   }
 
+  async disconnect(): Promise<void> {
+    if (this.producer) {
+      await this.producer.disconnect();
+      logger.info('Kafka producer disconnected.');
+    }
+  }
+
   // Analytics methods for in-memory data
   getGameAnalytics(): any {
     const gameEvents = this.events.filter(e => e.type.includes('game'));
@@ -107,21 +118,35 @@ export class AnalyticsService {
   }
 
   private calculateAverageGameDuration(): number {
-    const gameStarts = this.events.filter(e => e.type === 'game_start');
-    const gameEnds = this.events.filter(e => e.type === 'game_end');
-    
+    const gameDurations = new Map<string, { start?: number, end?: number }>();
+
+    this.events.forEach(event => {
+      if (!event.gameId || (event.type !== 'game_start' && event.type !== 'game_end')) {
+        return;
+      }
+      const times = gameDurations.get(event.gameId) || {};
+      if (event.type === 'game_start') {
+        times.start = event.timestamp.getTime();
+      } else if (event.type === 'game_end') {
+        times.end = event.timestamp.getTime();
+      }
+      gameDurations.set(event.gameId, times);
+    });
+
     let totalDuration = 0;
     let gameCount = 0;
 
-    gameStarts.forEach(start => {
-      const end = gameEnds.find(e => e.gameId === start.gameId);
-      if (end) {
-        totalDuration += end.timestamp.getTime() - start.timestamp.getTime();
+    gameDurations.forEach(times => {
+      if (times.start && times.end) {
+        totalDuration += times.end - times.start;
         gameCount++;
       }
     });
 
-    return gameCount > 0 ? totalDuration / gameCount / 1000 / 60 : 0; // Return in minutes
+    if (gameCount === 0) return 0;
+    
+    const averageMilliseconds = totalDuration / gameCount;
+    return averageMilliseconds / (1000 * 60); // Return in minutes
   }
 
   private getEventsToday(): GameEvent[] {

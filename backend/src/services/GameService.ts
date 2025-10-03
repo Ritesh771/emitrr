@@ -2,6 +2,7 @@ import { Game, Player, GameStatus, MatchmakingQueue, GameMove, BotMove } from '.
 import { GameLogic } from '../models/GameLogic';
 import { ConnectFourBot } from '../ai/ConnectFourBot';
 import { PlayerService } from './PlayerService';
+import { DatabaseService } from '../database/DatabaseService';
 import { AnalyticsService } from './AnalyticsService';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
@@ -10,8 +11,10 @@ export class GameService {
   private games: Map<string, Game> = new Map();
   private waitingQueue: MatchmakingQueue[] = [];
   private playerGameMap: Map<string, string> = new Map(); // playerId -> gameId
+  private socketGameMap: Map<string, string> = new Map(); // socketId -> gameId
 
   constructor(
+    private db: DatabaseService,
     private playerService: PlayerService,
     private analyticsService: AnalyticsService
   ) {}
@@ -97,6 +100,10 @@ export class GameService {
     this.games.set(gameId, game);
     this.playerGameMap.set(waitingPlayer.id, gameId);
     this.playerGameMap.set(newPlayer.id, gameId);
+    if (waitingPlayerQueue.socketId) {
+      this.socketGameMap.set(waitingPlayerQueue.socketId, gameId);
+    }
+    this.socketGameMap.set(newPlayer.socketId, gameId);
 
     // Analytics
     await this.analyticsService.publishGameEvent({
@@ -134,6 +141,7 @@ export class GameService {
 
     this.games.set(gameId, game);
     this.playerGameMap.set(player.id, gameId);
+    this.socketGameMap.set(player.socketId, gameId);
 
     // Analytics
     await this.analyticsService.publishGameEvent({
@@ -227,6 +235,9 @@ export class GameService {
           }
         }
 
+        // Persist the completed game to the database
+        await this.persistGame(game);
+
         // Analytics
         await this.analyticsService.publishGameEvent({
           type: 'game_end',
@@ -242,6 +253,10 @@ export class GameService {
         // Clean up player mappings
         this.playerGameMap.delete(game.player1.id);
         this.playerGameMap.delete(game.player2.id);
+        if (game.player1.socketId) this.socketGameMap.delete(game.player1.socketId);
+        if (game.player2.socketId) this.socketGameMap.delete(game.player2.socketId);
+
+        // Note: Bot players do not have socketIds to clean up
 
         return {
           success: true,
@@ -349,6 +364,10 @@ export class GameService {
 
       // Update player mapping
       this.playerGameMap.set(playerId, gameId);
+      // Clean up old socket mapping if it exists and update with new one
+      const oldSocketId = Object.values(Object.fromEntries(this.socketGameMap)).find(gid => gid === gameId);
+      if (oldSocketId) this.socketGameMap.delete(oldSocketId);
+      this.socketGameMap.set(socketId, gameId);
 
       // Analytics
       await this.analyticsService.publishGameEvent({
@@ -377,40 +396,35 @@ export class GameService {
     disconnectedPlayer?: Player 
   }> {
     try {
-      // Find game with this socket ID
-      for (const [gameId, game] of this.games.entries()) {
-        if (game.status !== GameStatus.IN_PROGRESS) {
-          continue;
-        }
+      const gameId = this.socketGameMap.get(socketId);
+      if (!gameId) {
+        return { gameAffected: false };
+      }
 
-        let disconnectedPlayer: Player | null = null;
+      const game = this.games.get(gameId);
+      if (!game || game.status !== GameStatus.IN_PROGRESS) {
+        return { gameAffected: false };
+      }
 
-        if (game.player1.socketId === socketId && !game.player1.isBot) {
-          disconnectedPlayer = game.player1;
-          game.player1.isConnected = false;
-          game.player1.lastSeen = new Date();
-        } else if (game.player2.socketId === socketId && !game.player2.isBot) {
-          disconnectedPlayer = game.player2;
-          game.player2.isConnected = false;
-          game.player2.lastSeen = new Date();
-        }
+      let disconnectedPlayer: Player | null = null;
+      if (game.player1.socketId === socketId) {
+        disconnectedPlayer = game.player1;
+        game.player1.isConnected = false;
+      } else if (game.player2.socketId === socketId) {
+        disconnectedPlayer = game.player2;
+        game.player2.isConnected = false;
+      }
 
-        if (disconnectedPlayer) {
-          // Analytics
-          await this.analyticsService.publishGameEvent({
-            type: 'player_disconnect',
-            gameId,
-            playerId: disconnectedPlayer.id,
-            data: { username: disconnectedPlayer.username },
-            timestamp: new Date()
-          });
-
-          return {
-            gameAffected: true,
-            gameId,
-            disconnectedPlayer
-          };
-        }
+      if (disconnectedPlayer) {
+        this.socketGameMap.delete(socketId); // Remove mapping for disconnected socket
+        await this.analyticsService.publishGameEvent({
+          type: 'player_disconnect',
+          gameId,
+          playerId: disconnectedPlayer.id,
+          data: { username: disconnectedPlayer.username },
+          timestamp: new Date()
+        });
+        return { gameAffected: true, gameId, disconnectedPlayer };
       }
 
       return { gameAffected: false };
@@ -439,11 +453,11 @@ export class GameService {
 
       // Check if player is still disconnected
       if (!player.isConnected) {
-        game.status = GameStatus.ABANDONED;
+        game.status = GameStatus.ABANDONED; // Mark as abandoned
         game.endedAt = new Date();
         
         // Award win to opponent (if not bot)
-        if (!opponent.isBot) {
+        if (!opponent.isBot) { // Only update stats if opponent is human
           game.winner = opponent.id;
           await this.playerService.updatePlayerStats(opponent.id, true);
           await this.playerService.updatePlayerStats(player.id, false);
@@ -461,9 +475,14 @@ export class GameService {
           timestamp: new Date()
         });
 
+        // Persist the abandoned game to the database
+        await this.persistGame(game);
+
         // Clean up
         this.playerGameMap.delete(game.player1.id);
         this.playerGameMap.delete(game.player2.id);
+        if (game.player1.socketId) this.socketGameMap.delete(game.player1.socketId);
+        if (game.player2.socketId) this.socketGameMap.delete(game.player2.socketId);
 
         return {
           gameAbandoned: true,
@@ -506,5 +525,53 @@ export class GameService {
       createdAt: game.createdAt,
       endedAt: game.endedAt
     };
+  }
+
+  private async persistGame(game: Game): Promise<void> {
+    if (!this.db.isAvailable()) {
+      logger.warn(`Database not available. Skipping persistence for game ${game.id}`);
+      return;
+    }
+    try {
+      const query = `
+        INSERT INTO games (id, player1_id, player2_id, winner_id, status, created_at, ended_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (id) DO NOTHING;
+      `;
+      // Bots don't have persisted IDs, so use null for them
+      const player1Id = game.player1.isBot ? null : game.player1.id;
+      const player2Id = game.player2.isBot ? null : game.player2.id;
+      const winnerId = game.winner && !game.winner.startsWith('bot_') ? game.winner : null;
+
+      await this.db.query(query, [game.id, player1Id, player2Id, winnerId, game.status, game.createdAt, game.endedAt]);
+      
+      // Persist moves
+      await this.persistMoves(game.id, game.moves);
+
+      logger.info(`Game ${game.id} persisted to database.`);
+    } catch (error) {
+      logger.error(`Failed to persist game ${game.id}:`, error);
+    }
+  }
+
+  private async persistMoves(gameId: string, moves: GameMove[]): Promise<void> {
+    if (moves.length === 0 || !this.db.isAvailable()) return;
+
+    try {
+      const placeholders: string[] = [];
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      moves.forEach(move => {
+        placeholders.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
+        params.push(move.id, gameId, move.playerId, move.moveNumber, move.column, move.row, move.timestamp.toISOString());
+      });
+
+      const query = `INSERT INTO game_moves (id, game_id, player_id, move_number, col, row, created_at) VALUES ${placeholders.join(',')};`;
+      await this.db.query(query, params);
+      logger.info(`Persisted ${moves.length} moves for game ${gameId}.`);
+    } catch (error) {
+      logger.error(`Failed to persist moves for game ${gameId}:`, error instanceof Error ? error.message : String(error));
+    }
   }
 }

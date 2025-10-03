@@ -33,8 +33,12 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      # For internal Docker network communication (backend service connects to kafka:29092)
+      # For external host access (e.g., local tools connect to localhost:9092)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
 
   # Backend Application (when containerized)
   backend:
@@ -45,7 +49,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://gameuser:gamepass123@postgres:5432/connect_four_game
-      KAFKA_BROKERS: kafka:9092
+      KAFKA_BROKERS: kafka:29092 # Connect to the internal listener
     depends_on:
       - postgres
       - kafka

@@ -79,53 +79,31 @@ export class PlayerService {
   }
 
   async getPlayerByUsername(username: string): Promise<Player | null> {
-    try {
-      const result = await this.db.query(
-        'SELECT * FROM players WHERE username = $1',
-        [username]
-      );
-
-      if (result.rows.length === 0) {
-        return null;
-      }
-
-      const row = result.rows[0];
-      return {
-        id: row.id,
-        username: row.username,
-        socketId: '', // Will be updated when player connects
-        gamesWon: row.games_won,
-        gamesLost: row.games_lost,
-        isBot: false,
-        isConnected: false,
-        lastSeen: new Date(row.updated_at)
-      };
-    } catch (error) {
-      logger.error('Error getting player by username:', error);
-      throw error;
-    }
+    return this.getPlayerBy('username', username);
   }
 
   async getPlayerById(playerId: string): Promise<Player | null> {
+    return this.getPlayerBy('id', playerId);
+  }
+
+  private async getPlayerBy(field: 'id' | 'username', value: string): Promise<Player | null> {
     try {
       const result = await this.db.query(
-        'SELECT * FROM players WHERE id = $1',
-        [playerId]
+        `SELECT * FROM players WHERE ${field} = $1`,
+        [value]
       );
 
-      if (result.rows.length === 0) {
-        return null;
-      }
+      if (result.rows.length === 0) return null;
 
       const row = result.rows[0];
       return {
         id: row.id,
         username: row.username,
-        socketId: '',
+        socketId: '', // Transient property, set on connection
         gamesWon: row.games_won,
         gamesLost: row.games_lost,
         isBot: false,
-        isConnected: false,
+        isConnected: false, // Transient property
         lastSeen: new Date(row.updated_at)
       };
     } catch (error) {
