@@ -28,13 +28,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   return (
-    <div className="game-board-container">
+    <div className="game-board-container w-full max-w-md mx-auto sm:max-w-2xl">
       {/* Game Status */}
-      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-        <div className="flex justify-between items-center">
-          <div>
-            <span className="font-semibold">{game.player1.username}</span>
-            <span className="ml-2 inline-block w-4 h-4 bg-red-500 rounded-full"></span>
+      <div className="mb-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+        <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
+          <div className="flex items-center">
+            <span className="font-semibold text-sm sm:text-base">{game.player1.username}</span>
+            <span className="ml-2 inline-block w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full"></span>
             {game.player1.isBot && <span className="ml-1 text-xs text-gray-500">(Bot)</span>}
           </div>
           <div className="text-center">
@@ -45,9 +45,9 @@ const GameBoard: React.FC<GameBoardProps> = ({
               </div>
             )}
           </div>
-          <div>
-            <span className="font-semibold">{game.player2.username}</span>
-            <span className="ml-2 inline-block w-4 h-4 bg-yellow-500 rounded-full"></span>
+          <div className="flex items-center">
+            <span className="font-semibold text-sm sm:text-base">{game.player2.username}</span>
+            <span className="ml-2 inline-block w-3 h-3 sm:w-4 sm:h-4 bg-yellow-500 rounded-full"></span>
             {game.player2.isBot && <span className="ml-1 text-xs text-gray-500">(Bot)</span>}
           </div>
         </div>
@@ -55,21 +55,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
         {game.status === 'completed' && (
           <div className="mt-2 text-center">
             {game.winner ? (
-              <div className="text-green-600 font-bold">
+              <div className="text-green-600 font-bold text-sm sm:text-base">
                 Winner: {game.winner === game.player1.id ? game.player1.username : game.player2.username}
               </div>
             ) : (
-              <div className="text-blue-600 font-bold">Draw!</div>
+              <div className="text-blue-600 font-bold text-sm sm:text-base">Draw!</div>
             )}
           </div>
         )}
       </div>
 
       {/* Game Board */}
-      <div className="bg-blue-600 p-4 rounded-lg shadow-lg">
-        <div className="grid grid-cols-7 gap-2">
+      <div className="bg-blue-600 p-2 sm:p-4 rounded-lg shadow-lg overflow-x-auto">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 min-w-0">
           {Array.from({ length: COLS }, (_, column) => (
-            <div key={column} className="flex flex-col-reverse gap-2">
+            <div key={column} className="flex flex-col-reverse gap-1 sm:gap-2">
               {/* Column Click Area */}
               <button
                 onClick={() => onColumnClick(column)}
@@ -79,7 +79,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                   isColumnFull(column)
                 }
                 className={`
-                  w-12 h-8 rounded border-2 border-dashed transition-colors
+                  w-8 h-6 sm:w-12 sm:h-8 rounded border-2 border-dashed transition-colors text-xs sm:text-sm
                   ${isMyTurn && game.status === 'in_progress' && !isColumnFull(column)
                     ? 'border-white hover:bg-blue-500 cursor-pointer'
                     : 'border-blue-400 cursor-not-allowed opacity-50'
@@ -99,7 +99,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                   <div
                     key={`${column}-${actualRow}`}
                     className={`
-                      w-12 h-12 rounded-full border-2 border-white 
+                      w-8 h-8 sm:w-12 sm:h-12 rounded-full border-2 border-white 
                       ${getCellColor(cellValue)}
                       transition-all duration-200
                     `}
@@ -112,10 +112,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Game Info */}
-      <div className="mt-4 text-sm text-gray-600">
-        <div>Moves: {game.moves}</div>
-        <div>Game ID: {game.id}</div>
-        <div>Status: {game.status}</div>
+      <div className="mt-4 text-xs sm:text-sm text-gray-600 text-center sm:text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4">
+          <div>Moves: {game.moves}</div>
+          <div className="truncate">Game ID: {game.id.slice(0, 8)}...</div>
+          <div>Status: {game.status}</div>
+        </div>
       </div>
     </div>
   );

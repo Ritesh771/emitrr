@@ -154,7 +154,7 @@ function App() {
 
   if (!connected && !reconnecting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Connecting to server...</p>
@@ -165,23 +165,25 @@ function App() {
 
   if (reconnecting && disconnectedGameId) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Reconnecting to game...</p>
           <p className="text-sm text-gray-500 mt-2">You have 30 seconds to reconnect</p>
-          <button
-            onClick={handleRejoinGame}
-            className="mt-4 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-          >
-            Retry Connection
-          </button>
-          <button
-            onClick={handleNewGame}
-            className="mt-2 ml-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-          >
-            Start New Game
-          </button>
+          <div className="flex flex-col sm:flex-row justify-center gap-2 mt-4">
+            <button
+              onClick={handleRejoinGame}
+              className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+            >
+              Retry Connection
+            </button>
+            <button
+              onClick={handleNewGame}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              Start New Game
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -194,7 +196,7 @@ function App() {
       )}
 
       {waiting && (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Finding opponent...</p>
@@ -204,20 +206,20 @@ function App() {
       )}
 
       {gameState && (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
           <div className="max-w-4xl mx-auto px-4">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">4 in a Row</h1>
-              <div className="space-x-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 space-y-4 sm:space-y-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">4 in a Row</h1>
+              <div className="flex space-x-2 sm:space-x-4">
                 <button
                   onClick={() => setShowLeaderboard(true)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-3 py-2 sm:px-4 sm:py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                 >
                   Leaderboard
                 </button>
                 <button
                   onClick={handleNewGame}
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
                 >
                   New Game
                 </button>

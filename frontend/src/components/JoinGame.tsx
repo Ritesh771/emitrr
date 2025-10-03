@@ -32,10 +32,10 @@ const JoinGame: React.FC<JoinGameProps> = ({ onJoinQueue, waiting }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md w-full space-y-6 sm:space-y-8">
         <div>
-          <h1 className="text-center text-4xl font-extrabold text-gray-900">
+          <h1 className="text-center text-3xl sm:text-4xl font-extrabold text-gray-900">
             4 in a Row
           </h1>
           <p className="mt-2 text-center text-sm text-gray-600">
@@ -43,8 +43,8 @@ const JoinGame: React.FC<JoinGameProps> = ({ onJoinQueue, waiting }) => {
           </p>
         </div>
         
-        <div className="bg-white py-8 px-4 shadow rounded-lg">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="bg-white py-6 sm:py-8 px-4 sm:px-6 shadow rounded-lg">
+          <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="username" className="sr-only">
                 Username
@@ -54,7 +54,7 @@ const JoinGame: React.FC<JoinGameProps> = ({ onJoinQueue, waiting }) => {
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-md relative block w-full px-3 py-3 sm:py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 text-base sm:text-sm"
                 placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -73,7 +73,7 @@ const JoinGame: React.FC<JoinGameProps> = ({ onJoinQueue, waiting }) => {
               <button
                 type="submit"
                 disabled={waiting}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative w-full flex justify-center py-3 sm:py-2 px-4 border border-transparent text-base sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {waiting ? (
                   <>
@@ -98,9 +98,9 @@ const JoinGame: React.FC<JoinGameProps> = ({ onJoinQueue, waiting }) => {
           )}
         </div>
 
-        <div className="text-center text-xs text-gray-500">
-          <p>Game Rules:</p>
-          <ul className="mt-2 space-y-1">
+        <div className="text-center text-xs sm:text-sm text-gray-500">
+          <p className="font-medium">Game Rules:</p>
+          <ul className="mt-2 space-y-1 text-left">
             <li>• Connect 4 discs vertically, horizontally, or diagonally</li>
             <li>• Take turns dropping discs into columns</li>
             <li>• First to connect 4 wins!</li>

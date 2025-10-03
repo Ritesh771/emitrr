@@ -14,8 +14,46 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  /* Prevent zooming on double tap on iOS */
+  touch-action: manipulation;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Improve button touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent viewport zooming on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px;
+  }
+}
+
+/* Game board specific mobile improvements */
+.game-board-container {
+  /* Ensure board doesn't overflow on small screens */
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Better touch interaction for game cells */
+.game-board-container button {
+  touch-action: manipulation;
+  user-select: none;
+}
+
+/* Improve modal on mobile */
+@media (max-width: 640px) {
+  .fixed.inset-0 {
+    padding: 16px;
+  }
 }
