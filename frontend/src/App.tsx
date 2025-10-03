@@ -232,6 +232,29 @@ function App() {
               isMyTurn={!!isMyTurn()}
               myPlayerId={myPlayerId}
             />
+            
+            {/* Developer Credits */}
+            <div className="mt-6 text-center text-xs text-gray-400">
+              <p>Developed by{' '}
+                <a 
+                  href="https://riteshn.me" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-indigo-500 hover:text-indigo-600 transition-colors"
+                >
+                  Ritesh N
+                </a>
+                {' '}•{' '}
+                <a 
+                  href="https://riteshn.me" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-gray-600 transition-colors"
+                >
+                  riteshn.me
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       )}

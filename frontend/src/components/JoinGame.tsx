@@ -106,6 +106,30 @@ const JoinGame: React.FC<JoinGameProps> = ({ onJoinQueue, waiting }) => {
             <li>• First to connect 4 wins!</li>
           </ul>
         </div>
+
+        {/* Developer Credits */}
+        <div className="text-center text-xs text-gray-400">
+          <p>Developed by{' '}
+            <a 
+              href="https://riteshn.me" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-indigo-500 hover:text-indigo-600 transition-colors"
+            >
+              Ritesh N
+            </a>
+          </p>
+          <p className="mt-1">
+            <a 
+              href="https://riteshn.me" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-gray-600 transition-colors"
+            >
+              Portfolio: riteshn.me
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,10 @@
 
 A real-time, backend-driven version of the classic Connect Four game with competitive bot AI and analytics.
 
+🌐 **Live Demo:** [emitrr-six.vercel.app](https://4x4ritesh.vercel.app)  
+📂 **Repository:** [github.com/Ritesh771/emitrr](https://github.com/Ritesh771/emitrr)  
+👤 **Developer:** [Ritesh N](https://riteshn.me)
+
 ## 🎮 Features
 
 - **Real-time multiplayer gameplay** using WebSockets
@@ -217,8 +221,6 @@ Set `LOG_LEVEL=debug` in backend `.env` for verbose logging.
 - PostgreSQL 15
 - Apache Kafka (optional)
 
----
-
 ## 🎮 How to Play
 
 1. **Enter your username** and click "Find Game"
@@ -228,3 +230,81 @@ Set `LOG_LEVEL=debug` in backend `.env` for verbose logging.
 5. **View leaderboard** to see top players
 
 **Enjoy the game!** 🎯
+
+---
+
+## ⚠️ Known Limitations and Areas for Improvement
+
+### 1. Infrastructure & Scalability
+- ❌ **Single Server Instance** – Render free tier = single server, no load balancing
+- ❌ **Cold Start Issues** – Render spins down after 15 mins of inactivity (~30s startup delay)
+- ❌ **No CDN Integration** – Static assets served directly from Render
+- ❌ **Database Connection Pooling** – Basic connection pool, no advanced optimization
+- ❌ **No Horizontal Scaling** – Single instance architecture
+
+### 2. Security & Authentication
+- ❌ **No User Authentication** – Players identified by username only
+- ⚠️ **Basic SQL Protection** – Parameterized queries used, but no ORM-level validation
+- ❌ **No Rate Limiting** – No protection against spam/abuse
+- ❌ **Basic CORS Configuration** – Simple origin-based validation
+- ❌ **No Security Headers** – Limited by deployment platform (Render)
+- ❌ **No HTTPS in Development** – Production uses platform HTTPS
+
+### 3. Game Logic & Features
+- ❌ **No Spectator Mode** – Only active players can view games
+- ❌ **Limited Game Modes** – Only classic 7x6 Connect Four
+- ❌ **No Tournament System** – Only individual matches
+- ❌ **Basic Leaderboard** – Simple win/loss tracking only
+- ❌ **No Game History** – No replay or game analysis features
+
+### 4. Real-time & Networking
+- ✅ **Basic Reconnection Support** – 30s window for reconnection
+- ❌ **No Persistent Session Tracking** – No resume after server downtime
+- ❌ **No Network Lag Compensation** – Basic real-time synchronization
+- ❌ **Limited Offline Support** – Requires constant connection
+
+### 5. User Experience & Mobile
+- ✅ **Mobile Responsive Design** – Optimized for mobile devices
+- ❌ **No Push Notifications** – No background game updates
+- ❌ **Limited Accessibility** – Basic screen reader support only
+- ❌ **No Internationalization** – English only
+- ❌ **Basic Error Messages** – Technical errors not user-friendly
+
+### 6. Analytics & Monitoring
+- ✅ **Basic Analytics** – Kafka integration for game events
+- ❌ **No Application Monitoring** – No performance metrics/alerts
+- ❌ **Limited Error Tracking** – Console logging only
+- ❌ **No A/B Testing** – No feature experimentation
+- ❌ **Basic Logging** – No centralized log management
+
+### 7. Development & Testing
+- ❌ **Limited Test Coverage** – No comprehensive unit/integration tests
+- ❌ **No CI/CD Pipeline** – Manual deployment process
+- ❌ **No Code Quality Gates** – No automated code analysis
+- ❌ **Basic Input Validation** – Frontend validation only, minimal backend validation
+- ❌ **No Performance Testing** – No load testing or performance benchmarks
+
+### 8. Data & Persistence
+- ❌ **No Data Backup Strategy** – Relies on platform backups
+- ❌ **No Data Migration Tools** – Manual schema updates
+- ❌ **Limited Data Analytics** – Basic win/loss statistics only
+- ❌ **No Data Retention Policy** – Indefinite data storage
+
+---
+
+## 🙌 A Note from the Developer
+
+This project was built with a strong focus on real-time performance, gameplay logic, and backend architecture. While it's not production-ready, it demonstrates core competencies in building scalable, event-driven applications with real-time interactivity.
+
+The implementation showcases:
+- ✅ **WebSocket Architecture** for real-time multiplayer gaming
+- ✅ **AI Strategy Implementation** using minimax algorithm with alpha-beta pruning
+- ✅ **Microservices Design** with separated concerns (game logic, analytics, persistence)
+- ✅ **Modern Full-Stack Development** with TypeScript, React, and Node.js
+- ✅ **Production Deployment** on modern cloud platforms (Vercel + Render)
+
+I welcome feedback and suggestions for improvements. Thanks for checking it out!
+
+**Developed by:** [Ritesh N](https://riteshn.me)  
+**Portfolio:** [riteshn.me](https://riteshn.me)  
+**Contact:** Open to opportunities and collaboration!

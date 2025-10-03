@@ -93,6 +93,20 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ show, onClose }) => {
               </table>
             </div>
           )}
+          
+          {/* Developer Credits */}
+          <div className="mt-4 pt-4 border-t border-gray-200 text-center text-xs text-gray-400">
+            <p>Built by{' '}
+              <a 
+                href="https://riteshn.me" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-indigo-500 hover:text-indigo-600 transition-colors"
+              >
+                Ritesh N
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
