@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useWebSocket } from './hooks/useWebSocket';
 import { GameState, GameMove } from './types';
 import JoinGame from './components/JoinGame';
@@ -6,7 +6,7 @@ import GameBoard from './components/GameBoard';
 import Leaderboard from './components/Leaderboard';
 import './App.css';
 
-const SERVER_URL = 'http://localhost:3001';
+const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 function App() {
   const [gameState, setGameState] = useState<GameState | null>(null);

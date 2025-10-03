@@ -14,15 +14,26 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
+
+// Configure CORS origins
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter((origin): origin is string => origin !== undefined);
+
 const io = new SocketIOServer(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST"]
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json());
 
 // Services
