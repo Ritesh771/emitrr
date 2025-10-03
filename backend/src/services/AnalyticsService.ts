@@ -97,13 +97,6 @@ export class AnalyticsService {
     }
   }
 
-  async disconnect(): Promise<void> {
-    if (this.producer) {
-      await this.producer.disconnect();
-      logger.info('Kafka producer disconnected.');
-    }
-  }
-
   // Analytics methods for in-memory data
   getGameAnalytics(): any {
     const gameEvents = this.events.filter(e => e.type.includes('game'));
@@ -175,5 +168,17 @@ export class AnalyticsService {
     });
 
     return mostActiveHour;
+  }
+
+  async disconnect(): Promise<void> {
+    try {
+      if (this.kafka) {
+        const producer = this.kafka.producer();
+        await producer.disconnect();
+        logger.info('Kafka producer disconnected');
+      }
+    } catch (error) {
+      logger.warn('Error disconnecting from Kafka:', error);
+    }
   }
 }

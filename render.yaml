@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: emitrr-backend
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        value: https://emitrr-six.vercel.app
+      - key: KAFKAJS_NO_PARTITIONER_WARNING
+        value: "1"
+      - key: LOG_LEVEL
+        value: info
+      - key: MATCHMAKING_TIMEOUT_SECONDS
+        value: "10"
+      - key: RECONNECTION_TIMEOUT_SECONDS
+        value: "30"
+
+databases:
+  - name: emitrr-postgres
+    plan: free

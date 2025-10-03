@@ -20,6 +20,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://emitrr-six.vercel.app' // Production frontend URL
 ].filter((origin): origin is string => origin !== undefined);
 
 const io = new SocketIOServer(server, {

@@ -567,7 +567,7 @@ export class GameService {
         params.push(move.id, gameId, move.playerId, move.moveNumber, move.column, move.row, move.timestamp.toISOString());
       });
 
-      const query = `INSERT INTO game_moves (id, game_id, player_id, move_number, col, row, created_at) VALUES ${placeholders.join(',')};`;
+      const query = `INSERT INTO game_moves (id, game_id, player_id, move_number, column_index, row_index, created_at) VALUES ${placeholders.join(',')};`;
       await this.db.query(query, params);
       logger.info(`Persisted ${moves.length} moves for game ${gameId}.`);
     } catch (error) {
