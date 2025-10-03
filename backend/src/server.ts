@@ -29,7 +29,7 @@ app.use(express.json());
 const databaseService = new DatabaseService();
 const playerService = new PlayerService(databaseService);
 const analyticsService = new AnalyticsService();
-const gameService = new GameService(playerService, analyticsService);
+const gameService = new GameService(databaseService, playerService, analyticsService);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -315,16 +315,20 @@ startServer();
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Server closed');
-    process.exit(0);
+  server.close(async () => {
+    await analyticsService.disconnect();
+    await databaseService.disconnect();
+    logger.info('HTTP server closed.');
+    process.exit(0); // Exit after cleanup
   });
 });
 
 process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Server closed');
-    process.exit(0);
+  server.close(async () => {
+    await analyticsService.disconnect();
+    await databaseService.disconnect();
+    logger.info('HTTP server closed.');
+    process.exit(0); // Exit after cleanup
   });
 });
